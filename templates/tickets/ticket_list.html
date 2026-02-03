@@ -1,0 +1,74 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Chamados | Central de Chamados{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1 class="h2">Chamados</h1>
+    <p class="subtitle">Visualize e acompanhe cada solicitacao.</p>
+</div>
+
+<div class="glass-card mb-3">
+    <form method="get" class="filter-grid">
+        <div>
+            <label for="status" class="form-label">Status</label>
+            <select id="status" name="status" class="form-select">
+                <option value="">Todos</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if value == status_filter %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="priority" class="form-label">Prioridade</label>
+            <select id="priority" name="priority" class="form-select">
+                <option value="">Todas</option>
+                {% for value, label in priority_choices %}
+                    <option value="{{ value }}" {% if value == priority_filter %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-primary" type="submit">Filtrar</button>
+            <a class="btn btn-outline-light" href="{% url 'ticket_list' %}">Limpar</a>
+        </div>
+    </form>
+</div>
+
+<div class="glass-card">
+    <div class="table-responsive">
+        <table class="table table-modern table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Titulo</th>
+                    <th>Categoria</th>
+                    <th>Solicitante</th>
+                    <th>Status</th>
+                    <th>Prioridade</th>
+                    <th>Criado em</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                    <tr>
+                        <td>{{ ticket.id }}</td>
+                        <td>{{ ticket.title }}</td>
+                        <td>{{ ticket.get_category_display }}</td>
+                        <td>{{ ticket.created_by.username }}</td>
+                        <td>
+                            <span class="badge-status badge-status-{{ ticket.status }}">{{ ticket.get_status_display }}</span>
+                        </td>
+                        <td>{{ ticket.get_priority_display }}</td>
+                        <td>{{ ticket.created_at|date:'d/m/Y H:i' }}</td>
+                        <td><a href="{% url 'ticket_detail' ticket.id %}">Abrir</a></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="8">Nenhum chamado encontrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
