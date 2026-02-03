@@ -1,0 +1,139 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Chamado #{{ ticket.id }} | Central de Chamados{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1 class="h2">Chamado #{{ ticket.id }}</h1>
+    <p class="subtitle">Acompanhe o historico e responda com clareza.</p>
+</div>
+
+<div class="row g-4" data-ticket-id="{{ ticket.id }}">
+    <div class="col-lg-8">
+        <div class="glass-card mb-3">
+            <h2 class="h5 mb-2">{{ ticket.title }}</h2>
+            <div class="ticket-meta">
+                <span>Categoria: {{ ticket.get_category_display }}</span>
+                <span>Solicitante: {{ ticket.created_by.username }}</span>
+                <span>Criado em: {{ ticket.created_at|date:'d/m/Y H:i' }}</span>
+            </div>
+            <div class="card-separator"></div>
+            <p class="mb-3">{{ ticket.description }}</p>
+            <div class="d-flex flex-wrap gap-2">
+                <span class="badge-soft">{{ ticket.get_priority_display }}</span>
+                <span id="statusBadge" class="badge-status badge-status-{{ ticket.status }}">{{ ticket.get_status_display }}</span>
+            </div>
+        </div>
+
+        <div class="glass-card mb-3">
+            <h3 class="h6">Historico de respostas</h3>
+            <div class="card-separator"></div>
+            <div id="responsesList">
+                {% for response in ticket.responses.all %}
+                    <div class="mb-3">
+                        <div class="small text-muted">
+                            {% if response.author.is_staff %}
+                                Atendente
+                            {% else %}
+                                Solicitante
+                            {% endif %}
+                            - {{ response.author.username }} · {{ response.created_at|date:'d/m/Y H:i' }}
+                        </div>
+                        <div>{{ response.message }}</div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">Sem respostas ainda.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <h3 class="h6">Adicionar resposta</h3>
+            <div class="card-separator"></div>
+            {% if ticket.status == 'closed' and not user.is_staff %}
+                <div class="alert alert-info mb-0">
+                    Este chamado foi finalizado. Se precisar reabrir, entre em contato com o atendente.
+                </div>
+            {% else %}
+                <form method="post" id="responseForm">
+                    {% csrf_token %}
+                    {{ response_form.as_p }}
+                    <div class="button-group">
+                        <button class="btn btn-primary" name="response_submit" type="submit">Responder</button>
+                        <a class="btn btn-outline-light" href="{% url 'ticket_list' %}">Voltar</a>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="glass-card">
+            <h3 class="h6">Status do chamado</h3>
+            <div class="card-separator"></div>
+            {% if user.is_staff %}
+                <form method="post">
+                    {% csrf_token %}
+                    {{ status_form.as_p }}
+                    <div class="button-group">
+                        <button class="btn btn-outline-light" name="status_submit" type="submit">Atualizar status</button>
+                    </div>
+                </form>
+            {% else %}
+                <p class="mb-0">{{ ticket.get_status_display }}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const root = document.querySelector('[data-ticket-id]');
+    if (!root) return;
+
+    const ticketId = root.getAttribute('data-ticket-id');
+    const responsesList = document.getElementById('responsesList');
+    const statusBadge = document.getElementById('statusBadge');
+    const responseForm = document.getElementById('responseForm');
+
+    const renderResponses = (responses) => {
+        if (!responses || responses.length === 0) {
+            responsesList.innerHTML = '<p class="text-muted">Sem respostas ainda.</p>';
+            return;
+        }
+        responsesList.innerHTML = responses.map(resp => (
+            `<div class="mb-3">
+                <div class="small text-muted">${resp.role} - ${resp.author} · ${resp.created_at}</div>
+                <div>${resp.message}</div>
+            </div>`
+        )).join('');
+    };
+
+    const updateStatus = (status, label) => {
+        if (!statusBadge) return;
+        statusBadge.className = `badge-status badge-status-${status}`;
+        statusBadge.textContent = label;
+    };
+
+    const shouldPause = () => {
+        if (!responseForm) return false;
+        return responseForm.contains(document.activeElement);
+    };
+
+    const fetchUpdates = async () => {
+        if (shouldPause()) return;
+        try {
+            const response = await fetch(`/chamados/${ticketId}/updates/`, { cache: 'no-store' });
+            if (!response.ok) return;
+            const data = await response.json();
+            renderResponses(data.responses);
+            updateStatus(data.status, data.status_label);
+        } catch (err) {
+            // ignore
+        }
+    };
+
+    setInterval(fetchUpdates, 5000);
+})();
+</script>
+{% endblock %}
