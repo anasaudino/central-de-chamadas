@@ -1,0 +1,21 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Novo Chamado | Central de Chamados{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1 class="h2">Abrir chamado</h1>
+    <p class="subtitle">Explique o problema para agilizar a resposta.</p>
+</div>
+
+<div class="glass-card">
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="button-group">
+            <button class="btn btn-primary" type="submit">Enviar</button>
+            <a class="btn btn-outline-light" href="{% url 'ticket_list' %}">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
