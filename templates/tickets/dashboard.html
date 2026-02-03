@@ -1,0 +1,64 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Dashboard | Central de Chamados{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1 class="h2">Visao geral</h1>
+    <p class="subtitle">Acompanhe o volume de chamados e responda rapido.</p>
+</div>
+
+<div class="stat-grid mb-4">
+    <div class="stat-card">
+        <div class="label">Total de chamados</div>
+        <div class="value">{{ counts.total }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Abertos</div>
+        <div class="value">{{ counts.open }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Fechados</div>
+        <div class="value">{{ counts.closed }}</div>
+    </div>
+</div>
+
+<div class="glass-card">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h2 class="h5 mb-0">Ultimos chamados</h2>
+        <a class="btn btn-outline-light btn-sm" href="{% url 'ticket_list' %}">Ver todos</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-modern table-sm align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Titulo</th>
+                    <th>Categoria</th>
+                    <th>Status</th>
+                    <th>Prioridade</th>
+                    <th>Criado em</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in latest_tickets %}
+                    <tr>
+                        <td>{{ ticket.id }}</td>
+                        <td>{{ ticket.title }}</td>
+                        <td>{{ ticket.get_category_display }}</td>
+                        <td>
+                            <span class="badge-status badge-status-{{ ticket.status }}">{{ ticket.get_status_display }}</span>
+                        </td>
+                        <td>{{ ticket.get_priority_display }}</td>
+                        <td>{{ ticket.created_at|date:'d/m/Y H:i' }}</td>
+                        <td><a href="{% url 'ticket_detail' ticket.id %}">Abrir</a></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7">Nenhum chamado ainda.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
