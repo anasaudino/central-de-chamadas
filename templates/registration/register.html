@@ -1,0 +1,123 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Cadastro | Central de Chamados{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-5 col-md-7">
+        <div class="glass-card">
+            <div class="hero">
+                <h1 class="h3 mb-0">Criar conta</h1>
+                <p class="subtitle mb-0">Preencha os dados para acessar a central.</p>
+            </div>
+            <form method="post" class="clean-form" novalidate>
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label" for="id_username">Usuário</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="text-danger small mt-1">{{ form.username.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="id_email">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="text-danger small mt-1">{{ form.email.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="id_password1">Senha</label>
+                    <div class="password-field">
+                        {{ form.password1 }}
+                        <button class="toggle-password" type="button" data-target="id_password1" aria-label="Mostrar senha">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                                <path d="M12 5c5.05 0 9.27 3.11 11 7.5-1.73 4.39-5.95 7.5-11 7.5S2.73 16.89 1 12.5C2.73 8.11 6.95 5 12 5Zm0 2C8.6 7 5.55 8.98 3.98 12.5 5.55 16.02 8.6 18 12 18s6.45-1.98 8.02-5.5C18.45 8.98 15.4 7 12 7Zm0 2.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Zm0 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" fill="currentColor" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="password-hints" id="passwordHints">
+                        <div class="hint" data-rule="length">Minimo de 8 caracteres</div>
+                        <div class="hint" data-rule="number">Nao pode ser so numeros</div>
+                    </div>
+                    {% if form.password1.errors %}
+                        <div class="text-danger small mt-1">{{ form.password1.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="id_password2">Confirmacao de senha</label>
+                    <div class="password-field">
+                        {{ form.password2 }}
+                        <button class="toggle-password" type="button" data-target="id_password2" aria-label="Mostrar senha">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                                <path d="M12 5c5.05 0 9.27 3.11 11 7.5-1.73 4.39-5.95 7.5-11 7.5S2.73 16.89 1 12.5C2.73 8.11 6.95 5 12 5Zm0 2C8.6 7 5.55 8.98 3.98 12.5 5.55 16.02 8.6 18 12 18s6.45-1.98 8.02-5.5C18.45 8.98 15.4 7 12 7Zm0 2.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Zm0 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" fill="currentColor" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="password-hints" id="passwordMatchHint">
+                        <div class="hint" data-rule="match">As senhas precisam ser iguais</div>
+                    </div>
+                    {% if form.password2.errors %}
+                        <div class="text-danger small mt-1">{{ form.password2.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" type="submit">Cadastrar</button>
+                    <a class="btn btn-outline-light" href="{% url 'login' %}">Já tenho conta</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const passwordInput = document.getElementById('id_password1');
+    const confirmInput = document.getElementById('id_password2');
+    const hints = document.querySelectorAll('#passwordHints .hint');
+    const matchHint = document.querySelector('#passwordMatchHint .hint');
+
+    const updateHints = () => {
+        if (!passwordInput || !confirmInput) return;
+        const value = passwordInput.value || '';
+        const isLengthOk = value.length >= 8;
+        const isNotOnlyNumbers = value.length > 0 && !/^[0-9]+$/.test(value);
+
+        hints.forEach(hint => {
+            const rule = hint.getAttribute('data-rule');
+            const ok = (rule === 'length' && isLengthOk) || (rule === 'number' && isNotOnlyNumbers);
+            hint.classList.toggle('hint-ok', ok);
+            hint.classList.toggle('hint-bad', !ok);
+        });
+
+        const matchOk = confirmInput.value.length > 0 && confirmInput.value === value;
+        matchHint.classList.toggle('hint-ok', matchOk);
+        matchHint.classList.toggle('hint-bad', !matchOk);
+    };
+
+    const toggleButtons = document.querySelectorAll('.toggle-password');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            const isPassword = input.getAttribute('type') === 'password';
+            input.setAttribute('type', isPassword ? 'text' : 'password');
+            button.classList.toggle('is-active', isPassword);
+        });
+    });
+
+    if (passwordInput) {
+        passwordInput.addEventListener('input', updateHints);
+    }
+    if (confirmInput) {
+        confirmInput.addEventListener('input', updateHints);
+    }
+})();
+</script>
+{% endblock %}
