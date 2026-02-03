@@ -1,0 +1,44 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Login | Central de Chamados{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-5 col-md-7">
+        <div class="glass-card">
+            <div class="hero">
+                <h1 class="h3 mb-0">Bem-vindo</h1>
+                <p class="subtitle mb-0">Acesse sua central para acompanhar os chamados.</p>
+            </div>
+            <form method="post" class="clean-form" novalidate>
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label" for="id_username">Usuário</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="text-danger small mt-1">{{ form.username.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="id_password">Senha</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                        <div class="text-danger small mt-1">{{ form.password.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="text-danger small mb-3">{{ form.non_field_errors|striptags }}</div>
+                {% endif %}
+
+                <div class="button-group">
+                    <button class="btn btn-primary" type="submit">Entrar</button>
+                    <a class="btn btn-outline-light" href="{% url 'register' %}">Criar conta</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
